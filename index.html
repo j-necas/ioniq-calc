@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nabíjecí kalkulačka — Ioniq 5</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #141760;
+    --accent-soft: #e8e9f2;
+    --border: #e0e0dc;
+    --good: #2d7a3e;
+    --warn: #c68a00;
+    --bad: #b03030;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px 0;
+    color: var(--accent);
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card h2 {
+    font-size: 1rem;
+    margin: 0 0 14px 0;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: flex-end;
+  }
+  .row > * { flex: 1; }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: inherit;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .unit-toggle {
+    display: inline-flex;
+    background: var(--accent-soft);
+    border-radius: 6px;
+    padding: 2px;
+    margin-left: 8px;
+  }
+  .unit-toggle button {
+    background: none;
+    border: none;
+    padding: 4px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  .unit-toggle button.active {
+    background: var(--accent);
+    color: white;
+  }
+  .result {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 18px;
+    margin-top: 8px;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .result-item {
+    text-align: center;
+  }
+  .result-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .result-value {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .result-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .warning {
+    background: #fff8e8;
+    border-left: 3px solid var(--warn);
+    padding: 10px 12px;
+    margin-top: 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #6b4f00;
+  }
+  .info {
+    background: #f0f4ff;
+    border-left: 3px solid var(--accent);
+    padding: 10px 12px;
+    margin-top: 12px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #2a2d5e;
+  }
+  .breakdown {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .breakdown div {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+  .footer-note {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 16px;
+    line-height: 1.6;
+  }
+  .footer-note a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  @media (max-width: 540px) {
+    .row { flex-direction: column; gap: 8px; }
+    .result-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Nabíjecí kalkulačka</h1>
+<div class="subtitle">Hyundai Ioniq 5 Power 73 kWh · 800V · AC max 11 kW · DC peak 233 kW</div>
+
+<div class="card">
+  <h2>Stav baterie</h2>
+  <div class="row">
+    <div>
+      <label>
+        Aktuální stav
+        <span class="unit-toggle">
+          <button id="fromPctBtn" class="active" onclick="setFromUnit('pct')">%</button>
+          <button id="fromKwhBtn" onclick="setFromUnit('kwh')">kWh</button>
+        </span>
+      </label>
+      <input type="text" inputmode="decimal" id="fromValue" value="20">
+    </div>
+    <div>
+      <label>
+        Cílový stav
+        <span class="unit-toggle">
+          <button id="toPctBtn" class="active" onclick="setToUnit('pct')">%</button>
+          <button id="toKwhBtn" onclick="setToUnit('kwh')">kWh</button>
+        </span>
+      </label>
+      <input type="text" inputmode="decimal" id="toValue" value="80">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Nabíječka</h2>
+  <div class="row">
+    <div>
+      <label>Síť / tarif</label>
+      <select id="network" onchange="onNetworkChange()">
+        <option value="custom">— vlastní cena —</option>
+        <optgroup label="Doma">
+          <option value="home_d27d_nt" data-price="3.5" data-power="6.9" data-type="ac">Vestel doma · D27d NT (noc)</option>
+          <option value="home_d27d_vt" data-price="5.5" data-power="6.9" data-type="ac">Vestel doma · D27d VT (den)</option>
+          <option value="home_vestel_11" data-price="3.5" data-power="11" data-type="ac">Vestel doma · 11 kW (po SW upgrade)</option>
+        </optgroup>
+        <optgroup label="AC veřejné">
+          <option value="teplarny_ac" data-price="8.3" data-power="22" data-type="ac">Teplárny Brno · registrovaný AC</option>
+          <option value="pre_start_ac" data-price="9.0" data-power="22" data-type="ac">PRE Point START · AC</option>
+          <option value="eon_ac_den" data-price="9.5" data-power="22" data-type="ac">E.ON Drive · AC Sk.1 den</option>
+          <option value="eon_ac_noc" data-price="8.0" data-power="22" data-type="ac">E.ON Drive · AC Sk.1 noc</option>
+          <option value="futurego_ac" data-price="9.9" data-power="22" data-type="ac">Futurego Basic · AC</option>
+          <option value="innogy_ac" data-price="9.9" data-power="22" data-type="ac">innogy · AC registrovaný</option>
+        </optgroup>
+        <optgroup label="DC 50–149 kW">
+          <option value="teplarny_dc1" data-price="10.5" data-power="50" data-type="dc">Teplárny Brno · DC Špitálka/Cimburkova</option>
+          <option value="teplarny_dc2" data-price="12.5" data-power="50" data-type="dc">Teplárny Brno · DC Vaňkovka/Olympia/Šumavská</option>
+          <option value="eon_dc_sk1_den" data-price="9.5" data-power="100" data-type="dc">E.ON Drive · DC Sk.1 den (do 100 kW)</option>
+          <option value="eon_dc_sk1_noc" data-price="8.0" data-power="100" data-type="dc">E.ON Drive · DC Sk.1 noc (do 100 kW)</option>
+          <option value="pre_start_dc" data-price="12.0" data-power="100" data-type="dc">PRE Point START · DC</option>
+          <option value="futurego_dc" data-price="12.9" data-power="100" data-type="dc">Futurego Basic · DC</option>
+          <option value="innogy_dc" data-price="12.9" data-power="100" data-type="dc">innogy · DC registrovaný</option>
+        </optgroup>
+        <optgroup label="UFC ≥150 kW">
+          <option value="orlen" data-price="11.0" data-power="300" data-type="dc">Orlen Charge · UFC jednotná sazba</option>
+          <option value="eon_ufc_sk2_den" data-price="13.0" data-power="200" data-type="dc">E.ON Drive · UFC Sk.2 den</option>
+          <option value="eon_ufc_sk2_noc" data-price="10.0" data-power="200" data-type="dc">E.ON Drive · UFC Sk.2 noc</option>
+          <option value="eon_ufc_sk3_den" data-price="16.9" data-power="350" data-type="dc">E.ON Drive · UFC Sk.3 den</option>
+          <option value="eon_ufc_sk3_noc" data-price="12.0" data-power="350" data-type="dc">E.ON Drive · UFC Sk.3 noc</option>
+          <option value="pre_start_ufc" data-price="14.0" data-power="350" data-type="dc">PRE Point START · UFC</option>
+          <option value="futurego_ufc" data-price="15.9" data-power="350" data-type="dc">Futurego Basic · UFC</option>
+          <option value="innogy_ufc" data-price="12.9" data-power="350" data-type="dc">innogy · UFC registrovaný</option>
+          <option value="ionity" data-price="19.95" data-power="350" data-type="dc">Ionity Direct · ad-hoc</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Výkon nabíječky (kW)</label>
+      <input type="text" inputmode="decimal" id="power" value="50">
+    </div>
+    <div>
+      <label>Cena (Kč/kWh)</label>
+      <input type="text" inputmode="decimal" id="price" value="12.0">
+    </div>
+    <div>
+      <label>Typ konektoru</label>
+      <select id="connectorType">
+        <option value="dc">DC (CCS2)</option>
+        <option value="ac">AC (Type 2)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Výsledek</h2>
+  <div class="result">
+    <div class="result-grid">
+      <div class="result-item">
+        <div class="result-label">Energie</div>
+        <div class="result-value" id="energy">—</div>
+        <div class="result-sub" id="energySub">&nbsp;</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Čas</div>
+        <div class="result-value" id="time">—</div>
+        <div class="result-sub" id="timeSub">&nbsp;</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Cena</div>
+        <div class="result-value" id="cost">—</div>
+        <div class="result-sub" id="costSub">&nbsp;</div>
+      </div>
+    </div>
+    <div id="warningBox"></div>
+    <div id="infoBox"></div>
+  </div>
+</div>
+
+<div class="footer-note">
+  Baterie 73 kWh netto · Účinnost AC 90 % · Účinnost DC 95 %<br>
+  DC čas zohledňuje křivku Ioniq 5 (peak 220–233 kW při 10–40 % SOC, taper od 60 %).<br>
+  Ceny dle veřejných ceníků k 17. 5. 2026 · Před cestou ověř v aplikaci poskytovatele.
+</div>
+
+</div>
+
+<script>
+const BATTERY_KWH = 73;
+const AC_OBC_LIMIT = 11;
+const AC_EFFICIENCY = 0.90;
+const DC_EFFICIENCY = 0.95;
+
+let fromUnit = 'pct';
+let toUnit = 'pct';
+
+function parseNum(v) {
+  if (v == null) return NaN;
+  return parseFloat(String(v).replace(',', '.').trim());
+}
+
+function setFromUnit(unit) {
+  fromUnit = unit;
+  document.getElementById('fromPctBtn').classList.toggle('active', unit === 'pct');
+  document.getElementById('fromKwhBtn').classList.toggle('active', unit === 'kwh');
+  const el = document.getElementById('fromValue');
+  const val = parseNum(el.value);
+  if (!isNaN(val)) {
+    if (unit === 'pct') {
+      el.value = Math.round((val / BATTERY_KWH) * 100);
+    } else {
+      el.value = (val / 100 * BATTERY_KWH).toFixed(1);
+    }
+  }
+  calc();
+}
+
+function setToUnit(unit) {
+  toUnit = unit;
+  document.getElementById('toPctBtn').classList.toggle('active', unit === 'pct');
+  document.getElementById('toKwhBtn').classList.toggle('active', unit === 'kwh');
+  const el = document.getElementById('toValue');
+  const val = parseNum(el.value);
+  if (!isNaN(val)) {
+    if (unit === 'pct') {
+      el.value = Math.round((val / BATTERY_KWH) * 100);
+    } else {
+      el.value = (val / 100 * BATTERY_KWH).toFixed(1);
+    }
+  }
+  calc();
+}
+
+function onNetworkChange() {
+  const sel = document.getElementById('network');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt.value === 'custom') {
+    calc();
+    return;
+  }
+  document.getElementById('price').value = opt.dataset.price;
+  document.getElementById('power').value = opt.dataset.power;
+  document.getElementById('connectorType').value = opt.dataset.type;
+  calc();
+}
+
+// Ioniq 5 DC charging curve — max power car can accept at given SOC (on a fast enough station)
+// Source: wiki/personal/elektroauto/Hyundai Ioniq 5 — Nabíjení.md
+function carMaxPowerAtSoc(soc) {
+  if (soc < 10) return 140;
+  if (soc < 40) return 225;
+  if (soc < 60) return 170;
+  if (soc < 80) return 100;
+  if (soc < 90) return 65;
+  return 35;
+}
+
+// Integrate charging time across SOC range, accounting for charger and car limits
+function calcDcTime(fromPct, toPct, chargerKw) {
+  let totalHours = 0;
+  const step = 0.5; // % step
+  let soc = fromPct;
+  while (soc < toPct) {
+    const segmentEnd = Math.min(soc + step, toPct);
+    const segmentPct = segmentEnd - soc;
+    const segmentKwh = (segmentPct / 100) * BATTERY_KWH;
+    const carMax = carMaxPowerAtSoc(soc + segmentPct / 2);
+    const actualPower = Math.min(chargerKw, carMax);
+    const segmentHours = segmentKwh / (actualPower * DC_EFFICIENCY);
+    totalHours += segmentHours;
+    soc = segmentEnd;
+  }
+  return totalHours;
+}
+
+function calcAcTime(energyKwh, chargerKw) {
+  const actualPower = Math.min(chargerKw, AC_OBC_LIMIT);
+  return energyKwh / (actualPower * AC_EFFICIENCY);
+}
+
+function formatTime(hours) {
+  if (hours < 1/60) return '< 1 min';
+  const totalMin = Math.round(hours * 60);
+  if (totalMin < 60) return totalMin + ' min';
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return h + ' h ' + m + ' min';
+}
+
+function calc() {
+  const fromRaw = parseNum(document.getElementById('fromValue').value);
+  const toRaw = parseNum(document.getElementById('toValue').value);
+  const power = parseNum(document.getElementById('power').value);
+  const price = parseNum(document.getElementById('price').value);
+  const type = document.getElementById('connectorType').value;
+
+  const warningBox = document.getElementById('warningBox');
+  const infoBox = document.getElementById('infoBox');
+  warningBox.innerHTML = '';
+  infoBox.innerHTML = '';
+
+  if (isNaN(fromRaw) || isNaN(toRaw) || isNaN(power) || isNaN(price)) {
+    document.getElementById('energy').textContent = '—';
+    document.getElementById('time').textContent = '—';
+    document.getElementById('cost').textContent = '—';
+    return;
+  }
+
+  const fromPct = fromUnit === 'pct' ? fromRaw : (fromRaw / BATTERY_KWH) * 100;
+  const toPct = toUnit === 'pct' ? toRaw : (toRaw / BATTERY_KWH) * 100;
+
+  if (toPct <= fromPct) {
+    warningBox.innerHTML = '<div class="warning">Cílový stav musí být vyšší než aktuální.</div>';
+    document.getElementById('energy').textContent = '—';
+    document.getElementById('time').textContent = '—';
+    document.getElementById('cost').textContent = '—';
+    return;
+  }
+  if (toPct > 100 || fromPct < 0) {
+    warningBox.innerHTML = '<div class="warning">Stav baterie musí být 0–100 %.</div>';
+    return;
+  }
+
+  const energyKwh = ((toPct - fromPct) / 100) * BATTERY_KWH;
+  const cost = energyKwh * price;
+
+  let hours;
+  if (type === 'ac') {
+    hours = calcAcTime(energyKwh, power);
+  } else {
+    hours = calcDcTime(fromPct, toPct, power);
+  }
+
+  document.getElementById('energy').textContent = energyKwh.toFixed(1) + ' kWh';
+  document.getElementById('energySub').textContent = fromPct.toFixed(0) + '% → ' + toPct.toFixed(0) + '%';
+  document.getElementById('time').textContent = formatTime(hours);
+  document.getElementById('cost').textContent = Math.round(cost) + ' Kč';
+
+  // Effective average power
+  const avgPower = energyKwh / hours;
+  document.getElementById('timeSub').textContent = '⌀ ' + avgPower.toFixed(1) + ' kW';
+  document.getElementById('costSub').textContent = price.toFixed(2) + ' Kč/kWh';
+
+  // Warnings
+  if (type === 'ac' && power > AC_OBC_LIMIT) {
+    infoBox.innerHTML = '<div class="info">⚠️ Ioniq 5 má palubní nabíječku limitovanou na 11 kW. I když nabíječka umí ' + power + ' kW, vůz si vezme jen 11 kW.</div>';
+  }
+  if (type === 'dc' && toPct > 80) {
+    const above80 = ((toPct - Math.max(80, fromPct)) / 100) * BATTERY_KWH;
+    if (above80 > 5) {
+      infoBox.innerHTML += '<div class="info">💡 Nad 80 % SOC výkon výrazně klesá (taper). Posledních ' + (toPct - 80).toFixed(0) + ' % trvá disproporčně dlouho — pokud nemusíš mít 100 %, ukonči na 80 %.</div>';
+    }
+  }
+  if (type === 'dc' && power < 50) {
+    warningBox.innerHTML = '<div class="warning">DC s výkonem &lt; 50 kW je neobvyklé — zkontroluj typ stojanu.</div>';
+  }
+}
+
+function init() {
+  ['fromValue','toValue','power','price'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', calc);
+    el.addEventListener('change', calc);
+    el.addEventListener('keyup', calc);
+  });
+  document.getElementById('connectorType').addEventListener('change', calc);
+  document.getElementById('network').addEventListener('change', onNetworkChange);
+  calc();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+
+</body>
+</html>
