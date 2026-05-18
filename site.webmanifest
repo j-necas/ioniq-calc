@@ -1,0 +1,14 @@
+{
+  "name": "Nabíjecí kalkulačka — Ioniq 5",
+  "short_name": "Ioniq Calc",
+  "description": "Kalkulačka nabíjení Hyundai Ioniq 5 — cena, čas, dojezd",
+  "start_url": "/ioniq-calc/",
+  "scope": "/ioniq-calc/",
+  "display": "standalone",
+  "background_color": "#f7f7f5",
+  "theme_color": "#141760",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
