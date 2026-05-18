@@ -114,17 +114,29 @@
     min-width: 0;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 8px 12px;
+    border-radius: 12px;
+    padding: 8px 8px;
     font-size: 0.85rem;
     cursor: pointer;
     color: var(--text);
     font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    line-height: 1.2;
   }
   .temp-pills button.active {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
+  }
+  .temp-pills .temp-label {
+    font-weight: 500;
+  }
+  .temp-pills .temp-range {
+    font-size: 0.7rem;
+    opacity: 0.75;
   }
   .result {
     background: var(--accent-soft);
@@ -278,10 +290,10 @@
 <div class="subtitle">Hyundai Ioniq 5 Power 73 kWh · 800V · AC max 11 kW · DC peak 222 kW</div>
 
 <div class="temp-pills" id="tempPills">
-  <button data-temp="summer" class="active">☀️ Léto</button>
-  <button data-temp="mild">🍂 Jaro/podzim</button>
-  <button data-temp="winter">❄️ Zima</button>
-  <button data-temp="frost">🥶 Mráz</button>
+  <button data-temp="summer" class="active"><span class="temp-label">☀️ Léto</span><span class="temp-range">10 až 25 °C</span></button>
+  <button data-temp="mild"><span class="temp-label">🍂 Přechodné</span><span class="temp-range">0 až 10 °C</span></button>
+  <button data-temp="winter"><span class="temp-label">❄️ Zima</span><span class="temp-range">−5 až 0 °C</span></button>
+  <button data-temp="frost"><span class="temp-label">🥶 Mráz</span><span class="temp-range">pod −5 °C</span></button>
 </div>
 
 <div class="card">
