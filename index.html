@@ -256,37 +256,37 @@
       <select id="network">
         <option value="custom">— vlastní cena —</option>
         <optgroup label="Doma">
-          <option value="home_d27d_nt" data-price="3.5" data-power="6.9" data-type="ac">Vestel doma · D27d NT (noc)</option>
-          <option value="home_d27d_vt" data-price="5.5" data-power="6.9" data-type="ac">Vestel doma · D27d VT (den)</option>
-          <option value="home_vestel_11" data-price="3.5" data-power="11" data-type="ac">Vestel doma · 11 kW (po SW upgrade)</option>
+          <option value="home_d27d_nt" data-price="3.5" data-power="6.9" data-type="ac" data-grace="9999" data-fee="0">Vestel doma · D27d NT (noc)</option>
+          <option value="home_d27d_vt" data-price="5.5" data-power="6.9" data-type="ac" data-grace="9999" data-fee="0">Vestel doma · D27d VT (den)</option>
+          <option value="home_vestel_11" data-price="3.5" data-power="11" data-type="ac" data-grace="9999" data-fee="0">Vestel doma · 11 kW (po SW upgrade)</option>
         </optgroup>
         <optgroup label="AC veřejné">
-          <option value="teplarny_ac" data-price="8.3" data-power="22" data-type="ac">Teplárny Brno · registrovaný AC</option>
-          <option value="pre_start_ac" data-price="9.0" data-power="22" data-type="ac">PRE Point START · AC</option>
-          <option value="eon_ac_den" data-price="9.5" data-power="22" data-type="ac">E.ON Drive · AC Sk.1 den</option>
-          <option value="eon_ac_noc" data-price="8.0" data-power="22" data-type="ac">E.ON Drive · AC Sk.1 noc</option>
-          <option value="futurego_ac" data-price="9.9" data-power="22" data-type="ac">Futurego Basic · AC</option>
-          <option value="innogy_ac" data-price="9.9" data-power="22" data-type="ac">innogy · AC registrovaný</option>
+          <option value="teplarny_ac" data-price="8.3" data-power="22" data-type="ac" data-grace="240" data-fee="1">Teplárny Brno · registrovaný AC</option>
+          <option value="pre_start_ac" data-price="9.0" data-power="22" data-type="ac" data-grace="180" data-fee="1">PRE Point START · AC</option>
+          <option value="eon_ac_den" data-price="9.5" data-power="22" data-type="ac" data-grace="480" data-fee="2">E.ON Drive · AC Sk.1 den</option>
+          <option value="eon_ac_noc" data-price="8.0" data-power="22" data-type="ac" data-grace="480" data-fee="2">E.ON Drive · AC Sk.1 noc</option>
+          <option value="futurego_ac" data-price="9.9" data-power="22" data-type="ac" data-grace="480" data-fee="2">Futurego Basic · AC</option>
+          <option value="innogy_ac" data-price="9.9" data-power="22" data-type="ac" data-grace="480" data-fee="2">innogy · AC registrovaný</option>
         </optgroup>
         <optgroup label="DC 50–149 kW">
-          <option value="teplarny_dc1" data-price="10.5" data-power="50" data-type="dc">Teplárny Brno · DC Špitálka/Cimburkova</option>
-          <option value="teplarny_dc2" data-price="12.5" data-power="50" data-type="dc">Teplárny Brno · DC Vaňkovka/Olympia/Šumavská</option>
-          <option value="eon_dc_sk1_den" data-price="9.5" data-power="100" data-type="dc">E.ON Drive · DC Sk.1 den (do 100 kW)</option>
-          <option value="eon_dc_sk1_noc" data-price="8.0" data-power="100" data-type="dc">E.ON Drive · DC Sk.1 noc (do 100 kW)</option>
-          <option value="pre_start_dc" data-price="12.0" data-power="100" data-type="dc">PRE Point START · DC</option>
-          <option value="futurego_dc" data-price="12.9" data-power="100" data-type="dc">Futurego Basic · DC</option>
-          <option value="innogy_dc" data-price="12.9" data-power="100" data-type="dc">innogy · DC registrovaný</option>
+          <option value="teplarny_dc1" data-price="10.5" data-power="50" data-type="dc" data-grace="60" data-fee="1">Teplárny Brno · DC Špitálka/Cimburkova</option>
+          <option value="teplarny_dc2" data-price="12.5" data-power="50" data-type="dc" data-grace="60" data-fee="1">Teplárny Brno · DC Vaňkovka/Olympia/Šumavská</option>
+          <option value="eon_dc_sk1_den" data-price="9.5" data-power="100" data-type="dc" data-grace="120" data-fee="2">E.ON Drive · DC Sk.1 den (do 100 kW)</option>
+          <option value="eon_dc_sk1_noc" data-price="8.0" data-power="100" data-type="dc" data-grace="120" data-fee="2">E.ON Drive · DC Sk.1 noc (do 100 kW)</option>
+          <option value="pre_start_dc" data-price="12.0" data-power="100" data-type="dc" data-grace="60" data-fee="2">PRE Point START · DC</option>
+          <option value="futurego_dc" data-price="12.9" data-power="100" data-type="dc" data-grace="90" data-fee="2">Futurego Basic · DC</option>
+          <option value="innogy_dc" data-price="12.9" data-power="100" data-type="dc" data-grace="90" data-fee="2">innogy · DC registrovaný</option>
         </optgroup>
         <optgroup label="UFC ≥150 kW">
-          <option value="orlen" data-price="11.0" data-power="300" data-type="dc">Orlen Charge · UFC jednotná sazba</option>
-          <option value="eon_ufc_sk2_den" data-price="13.0" data-power="200" data-type="dc">E.ON Drive · UFC Sk.2 den</option>
-          <option value="eon_ufc_sk2_noc" data-price="10.0" data-power="200" data-type="dc">E.ON Drive · UFC Sk.2 noc</option>
-          <option value="eon_ufc_sk3_den" data-price="16.9" data-power="350" data-type="dc">E.ON Drive · UFC Sk.3 den</option>
-          <option value="eon_ufc_sk3_noc" data-price="12.0" data-power="350" data-type="dc">E.ON Drive · UFC Sk.3 noc</option>
-          <option value="pre_start_ufc" data-price="14.0" data-power="350" data-type="dc">PRE Point START · UFC</option>
-          <option value="futurego_ufc" data-price="15.9" data-power="350" data-type="dc">Futurego Basic · UFC</option>
-          <option value="innogy_ufc" data-price="12.9" data-power="350" data-type="dc">innogy · UFC registrovaný</option>
-          <option value="ionity" data-price="19.95" data-power="350" data-type="dc">Ionity Direct · ad-hoc</option>
+          <option value="orlen" data-price="11.0" data-power="300" data-type="dc" data-grace="" data-fee="">Orlen Charge · UFC jednotná sazba</option>
+          <option value="eon_ufc_sk2_den" data-price="13.0" data-power="200" data-type="dc" data-grace="60" data-fee="2">E.ON Drive · UFC Sk.2 den</option>
+          <option value="eon_ufc_sk2_noc" data-price="10.0" data-power="200" data-type="dc" data-grace="60" data-fee="2">E.ON Drive · UFC Sk.2 noc</option>
+          <option value="eon_ufc_sk3_den" data-price="16.9" data-power="350" data-type="dc" data-grace="30" data-fee="2">E.ON Drive · UFC Sk.3 den</option>
+          <option value="eon_ufc_sk3_noc" data-price="12.0" data-power="350" data-type="dc" data-grace="30" data-fee="2">E.ON Drive · UFC Sk.3 noc</option>
+          <option value="pre_start_ufc" data-price="14.0" data-power="350" data-type="dc" data-grace="30" data-fee="2">PRE Point START · UFC</option>
+          <option value="futurego_ufc" data-price="15.9" data-power="350" data-type="dc" data-grace="45" data-fee="2">Futurego Basic · UFC</option>
+          <option value="innogy_ufc" data-price="12.9" data-power="350" data-type="dc" data-grace="30" data-fee="2">innogy · UFC registrovaný</option>
+          <option value="ionity" data-price="19.95" data-power="350" data-type="dc" data-grace="" data-fee="">Ionity Direct · ad-hoc</option>
         </optgroup>
       </select>
     </div>
@@ -306,6 +306,20 @@
         <option value="dc">DC (CCS2)</option>
         <option value="ac">AC (Type 2)</option>
       </select>
+    </div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Volné min do idle</label>
+      <input type="text" inputmode="decimal" id="idleGrace" value="60" placeholder="—">
+    </div>
+    <div>
+      <label>Idle (Kč/min)</label>
+      <input type="text" inputmode="decimal" id="idleFee" value="2" placeholder="—">
+    </div>
+    <div>
+      <label>Doba po dobití (min)</label>
+      <input type="text" inputmode="decimal" id="dwellAfter" value="0">
     </div>
   </div>
 </div>
@@ -360,6 +374,7 @@
 <div class="footer-note">
   Baterie 73 kWh netto · DC křivka kalibrovaná podle <a href="https://fdrive.cz/clanky/hyundai-stejne-rychly-jako-porsche-vyzkouseli-jsme-nabijeni-ioniqu-5-7435" target="_blank">testu fdrive.cz</a> (peak 222 kW @ 45 % SOC, BMS pauza okolo 83 %).<br>
   Spotřeba z <a href="https://fdrive.cz/clanky/test-jaka-je-spotreba-hyundai-ioniq-5-v-beznem-provozu-zaostreno-na-spotrebu-8037" target="_blank">testu fdrive.cz</a> (624 km, RWD 73 kWh, letní podmínky).<br>
+  <b>Idle fee:</b> volné minuty počítané od začátku session. Po překročení se účtuje Kč/min — typicky 1–2 Kč/min. „Doba po dobití" = jak dlouho zůstaneš zaparkovaný po skončení nabíjení.<br>
   Ceny dle veřejných ceníků k 17. 5. 2026 · Před cestou ověř v aplikaci poskytovatele.
 </div>
 
@@ -429,6 +444,8 @@ function onNetworkChange() {
   document.getElementById('price').value = opt.dataset.price;
   document.getElementById('power').value = opt.dataset.power;
   document.getElementById('connectorType').value = opt.dataset.type;
+  document.getElementById('idleGrace').value = opt.dataset.grace || '';
+  document.getElementById('idleFee').value = opt.dataset.fee || '';
   calc();
 }
 
@@ -696,19 +713,40 @@ function calc() {
   }
 
   const energyKwh = ((toPct - fromPct) / 100) * BATTERY_KWH;
-  const cost = energyKwh * price;
+  const energyCost = energyKwh * price;
   const profile = type === 'ac'
     ? acChargingProfile(fromPct, toPct, power)
     : dcChargingProfile(fromPct, toPct, power);
   const hours = profile.totalHours;
   const avgPower = energyKwh / hours;
+  const chargingMin = hours * 60;
+
+  // Idle fee calculation
+  const graceMin = parseNum(document.getElementById('idleGrace').value);
+  const feePerMin = parseNum(document.getElementById('idleFee').value);
+  const dwellMin = parseNum(document.getElementById('dwellAfter').value);
+  const dwell = isNaN(dwellMin) ? 0 : Math.max(0, dwellMin);
+  let idleFee = 0;
+  let idleMinChargeable = 0;
+  if (!isNaN(graceMin) && !isNaN(feePerMin) && feePerMin > 0) {
+    const totalSessionMin = chargingMin + dwell;
+    idleMinChargeable = Math.max(0, totalSessionMin - graceMin);
+    idleFee = idleMinChargeable * feePerMin;
+  }
+  const totalCost = energyCost + idleFee;
 
   document.getElementById('energy').textContent = energyKwh.toFixed(1) + ' kWh';
   document.getElementById('energySub').textContent = fromPct.toFixed(0) + '% → ' + toPct.toFixed(0) + '%';
   document.getElementById('time').textContent = formatTime(hours);
   document.getElementById('timeSub').textContent = '⌀ ' + avgPower.toFixed(1) + ' kW';
-  document.getElementById('cost').textContent = Math.round(cost) + ' Kč';
-  document.getElementById('costSub').textContent = price.toFixed(2).replace('.', ',') + ' Kč/kWh';
+  document.getElementById('cost').textContent = Math.round(totalCost) + ' Kč';
+  if (idleFee > 0) {
+    document.getElementById('costSub').textContent = 'energie ' + Math.round(energyCost) + ' + idle ' + Math.round(idleFee) + ' Kč (' + idleMinChargeable.toFixed(0) + ' min × ' + feePerMin.toFixed(2).replace('.', ',') + ')';
+  } else if (isNaN(graceMin) || isNaN(feePerMin)) {
+    document.getElementById('costSub').textContent = price.toFixed(2).replace('.', ',') + ' Kč/kWh · idle ?';
+  } else {
+    document.getElementById('costSub').textContent = price.toFixed(2).replace('.', ',') + ' Kč/kWh · idle 0';
+  }
 
   // Charts + range
   renderPowerChart(fromPct, toPct, power, type);
@@ -730,10 +768,22 @@ function calc() {
   if (type === 'dc' && power < 50) {
     warningBox.innerHTML = '<div class="warning">DC s výkonem &lt; 50 kW je neobvyklé — zkontroluj typ stojanu.</div>';
   }
+  // Idle warnings
+  if (!isNaN(graceMin) && !isNaN(feePerMin) && feePerMin > 0) {
+    const bufferAfterCharging = graceMin - chargingMin;
+    if (bufferAfterCharging < 0) {
+      warningBox.innerHTML += '<div class="warning">⏱️ Samotné nabíjení (' + Math.round(chargingMin) + ' min) překračuje volné minuty (' + graceMin + '). Idle se účtuje už během nabíjení.</div>';
+    } else if (bufferAfterCharging < 15 && type === 'dc') {
+      infoBox.innerHTML += '<div class="info">⏱️ Po dokončení nabíjení máš jen ~' + Math.round(bufferAfterCharging) + ' min než začne idle ' + feePerMin + ' Kč/min. Odjeď hned po dosažení cíle.</div>';
+    }
+  }
+  if (isNaN(graceMin) || isNaN(feePerMin)) {
+    infoBox.innerHTML += '<div class="info">ℹ️ Idle poplatek u této sítě není zveřejněn — ověř v aplikaci poskytovatele.</div>';
+  }
 }
 
 function init() {
-  ['fromValue','toValue','power','price'].forEach(id => {
+  ['fromValue','toValue','power','price','idleGrace','idleFee','dwellAfter'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('input', calc);
     el.addEventListener('change', calc);
