@@ -283,7 +283,12 @@
   }
   .apply-btn:hover { background: #1d2080; }
   @media (max-width: 540px) {
-    .row { flex-direction: column; gap: 8px; }
+    .row {
+      flex-direction: column;
+      gap: 8px;
+      align-items: stretch;
+    }
+    .row > * { width: 100%; }
     .result-grid { grid-template-columns: 1fr; gap: 12px; }
     .range-grid { grid-template-columns: 1fr; }
     body { padding: 16px; }
