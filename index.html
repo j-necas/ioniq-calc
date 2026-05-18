@@ -8,7 +8,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
-<meta name="theme-color" content="#141760">
+<meta name="theme-color" content="#141760" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0f1c" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ioniq Calc">
@@ -28,6 +29,45 @@
     --chart-area: rgba(20, 23, 96, 0.12);
     --chart-highlight: #c68a00;
     --chart-grid: #ececea;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+    --zone-cold: rgba(140, 140, 140, 0.18);
+    --zone-peak: rgba(45, 122, 62, 0.22);
+    --zone-taper: rgba(198, 138, 0, 0.22);
+    --zone-pause: rgba(220, 100, 30, 0.28);
+    --zone-slow: rgba(176, 48, 48, 0.22);
+    --battery-bg: #e0e0dc;
+    --battery-shell: #1a1a1a;
+    --battery-fill: #2d7a3e;
+    --battery-charge-1: #f5c542;
+    --battery-charge-2: #ffe88a;
+    --battery-empty: rgba(255, 255, 255, 0.6);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0f1c;
+      --card: #1a1c2e;
+      --text: #e8e9f0;
+      --muted: #8e90a8;
+      --accent: #8a93e8;
+      --accent-soft: #252741;
+      --border: #2a2d44;
+      --good: #5eb872;
+      --chart-line: #8a93e8;
+      --chart-area: rgba(138, 147, 232, 0.18);
+      --chart-grid: #2a2d44;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+      --zone-cold: rgba(180, 180, 180, 0.10);
+      --zone-peak: rgba(94, 184, 114, 0.20);
+      --zone-taper: rgba(245, 197, 66, 0.20);
+      --zone-pause: rgba(245, 130, 70, 0.28);
+      --zone-slow: rgba(220, 90, 90, 0.22);
+      --battery-bg: #2a2d44;
+      --battery-shell: #e8e9f0;
+      --battery-fill: #4a9b5e;
+      --battery-empty: rgba(255, 255, 255, 0.08);
+    }
   }
   * { box-sizing: border-box; }
   body {
@@ -51,10 +91,14 @@
   }
   .card {
     background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 20px;
     margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-md);
   }
   .card h2 {
     font-size: 1rem;
@@ -81,15 +125,18 @@
     padding: 10px 12px;
     font-size: 1rem;
     border: 1px solid var(--border);
-    border-radius: 6px;
-    background: white;
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
     font-family: inherit;
     -webkit-appearance: none;
     appearance: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
   input:focus, select:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
   }
   .unit-toggle {
     display: inline-flex;
@@ -171,29 +218,110 @@
     font-size: 1.4rem;
     font-weight: 600;
     color: var(--accent);
+    transition: color 0.3s ease;
+  }
+  .result-item.hero .result-value {
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--chart-highlight) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   .result-sub {
     font-size: 0.85rem;
     color: var(--muted);
     margin-top: 2px;
   }
+  .battery-viz {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 20px 0;
+  }
+  .battery-shell {
+    flex: 1;
+    height: 56px;
+    border: 3px solid var(--battery-shell);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    background: var(--battery-empty);
+  }
+  .battery-fill-current {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background: var(--battery-fill);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .battery-fill-charging {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      var(--battery-charge-1) 0%,
+      var(--battery-charge-2) 50%,
+      var(--battery-charge-1) 100%
+    );
+    background-size: 200% 100%;
+    animation: chargingShimmer 1.8s linear infinite;
+    transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1), width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes chargingShimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+  }
+  .battery-labels {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    color: white;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .battery-label-from {
+    flex: 0 0 auto;
+  }
+  .battery-label-arrow {
+    flex: 1;
+    text-align: center;
+    opacity: 0.8;
+    font-weight: 400;
+    font-size: 0.85rem;
+  }
+  .battery-label-to {
+    flex: 0 0 auto;
+  }
+  .battery-cap {
+    width: 8px;
+    height: 28px;
+    background: var(--battery-shell);
+    border-radius: 0 3px 3px 0;
+  }
   .warning {
-    background: #fff8e8;
+    background: color-mix(in srgb, var(--warn) 12%, var(--card));
     border-left: 3px solid var(--warn);
     padding: 10px 12px;
     margin-top: 12px;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 0.85rem;
-    color: #6b4f00;
+    color: var(--text);
   }
   .info {
-    background: #f0f4ff;
+    background: color-mix(in srgb, var(--accent) 8%, var(--card));
     border-left: 3px solid var(--accent);
     padding: 10px 12px;
     margin-top: 12px;
-    border-radius: 4px;
+    border-radius: 6px;
     font-size: 0.85rem;
-    color: #2a2d5e;
+    color: var(--text);
   }
   .footer-note {
     font-size: 0.75rem;
@@ -301,6 +429,19 @@
 
 <h1>Nabíjecí kalkulačka</h1>
 <div class="subtitle">Hyundai Ioniq 5 Power 73 kWh · 800V · AC max 11 kW · DC peak 222 kW</div>
+
+<div class="battery-viz" aria-label="Vizuální stav baterie">
+  <div class="battery-shell">
+    <div class="battery-fill-current" id="batCurrent" style="width: 20%"></div>
+    <div class="battery-fill-charging" id="batCharging" style="left: 20%; width: 60%"></div>
+    <div class="battery-labels">
+      <span class="battery-label-from" id="batLabelFrom">20 %</span>
+      <span class="battery-label-arrow" id="batLabelArrow">+44 kWh</span>
+      <span class="battery-label-to" id="batLabelTo">80 %</span>
+    </div>
+  </div>
+  <div class="battery-cap"></div>
+</div>
 
 <div class="temp-pills" id="tempPills">
   <button data-temp="summer" class="active"><span class="temp-label">☀️ Léto</span><span class="temp-range">10 až 25 °C</span></button>
@@ -425,7 +566,7 @@
         <div class="result-value" id="time">—</div>
         <div class="result-sub" id="timeSub">&nbsp;</div>
       </div>
-      <div class="result-item">
+      <div class="result-item hero">
         <div class="result-label">Cena</div>
         <div class="result-value" id="cost">—</div>
         <div class="result-sub" id="costSub">&nbsp;</div>
@@ -662,6 +803,24 @@ function renderPowerChart(fromPct, toPct, chargerKw, type) {
   const xScale = soc => P.left + (soc / 100) * innerW;
   const yScale = pow => P.top + innerH - (pow / maxPower) * innerH;
 
+  // Color-coded zones (only for DC — AC has no SOC-dependent taper)
+  if (type === 'dc') {
+    const zones = [
+      { from: 0,  to: 10,  fill: 'var(--zone-cold)',  label: 'studený start' },
+      { from: 10, to: 50,  fill: 'var(--zone-peak)',  label: 'peak' },
+      { from: 50, to: 80,  fill: 'var(--zone-taper)', label: 'taper' },
+      { from: 80, to: 86,  fill: 'var(--zone-pause)', label: 'BMS pauza' },
+      { from: 86, to: 100, fill: 'var(--zone-slow)',  label: 'pomalý taper' },
+    ];
+    zones.forEach(z => {
+      svg.appendChild(svgNS('rect', {
+        x: xScale(z.from), y: P.top,
+        width: xScale(z.to) - xScale(z.from), height: innerH,
+        fill: z.fill
+      }));
+    });
+  }
+
   for (let p = 0; p <= maxPower; p += 50) {
     const y = yScale(p);
     svg.appendChild(svgNS('line', { x1: P.left, y1: y, x2: P.left + innerW, y2: y, stroke: 'var(--chart-grid)', 'stroke-width': 1 }));
@@ -676,10 +835,14 @@ function renderPowerChart(fromPct, toPct, chargerKw, type) {
   svg.appendChild(svgNS('text', { x: W - P.right, y: H - 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, 'SOC'));
 
   if (!isNaN(fromPct) && !isNaN(toPct) && toPct > fromPct) {
+    // Stronger highlight outline for user range
     svg.appendChild(svgNS('rect', {
       x: xScale(fromPct), y: P.top,
       width: xScale(toPct) - xScale(fromPct), height: innerH,
-      fill: 'var(--chart-highlight)', 'fill-opacity': 0.12
+      fill: 'none',
+      stroke: 'var(--chart-highlight)',
+      'stroke-width': 2,
+      'stroke-dasharray': '4 3'
     }));
   }
 
@@ -787,6 +950,36 @@ function renderRange(toPct, totalCost) {
   caption.textContent = 'Spotřeby z testu fdrive.cz upravené pro „' + tempProfile.label + '" (× ' + tempProfile.consMult.toFixed(2).replace('.', ',') + '). Cena/km z aktuální session.';
 }
 
+function updateBatteryViz(fromPct, toPct) {
+  const cur = document.getElementById('batCurrent');
+  const chr = document.getElementById('batCharging');
+  const lblFrom = document.getElementById('batLabelFrom');
+  const lblTo = document.getElementById('batLabelTo');
+  const lblArrow = document.getElementById('batLabelArrow');
+
+  if (isNaN(fromPct) || fromPct < 0) fromPct = 0;
+  if (isNaN(toPct) || toPct < 0) toPct = 0;
+  fromPct = Math.max(0, Math.min(100, fromPct));
+  toPct = Math.max(0, Math.min(100, toPct));
+
+  cur.style.width = fromPct + '%';
+  if (toPct > fromPct) {
+    chr.style.left = fromPct + '%';
+    chr.style.width = (toPct - fromPct) + '%';
+    chr.style.display = 'block';
+    const delta = ((toPct - fromPct) / 100) * BATTERY_KWH;
+    lblArrow.textContent = '+ ' + delta.toFixed(1).replace('.', ',') + ' kWh';
+    lblTo.textContent = Math.round(toPct) + ' %';
+    lblTo.style.display = 'inline';
+    lblArrow.style.display = 'inline';
+  } else {
+    chr.style.display = 'none';
+    lblTo.style.display = 'none';
+    lblArrow.textContent = '—';
+  }
+  lblFrom.textContent = Math.round(fromPct) + ' %';
+}
+
 function renderPlanner(fromPct) {
   const dist = parseNum(document.getElementById('tripDistance').value);
   const modeIdx = parseInt(document.getElementById('tripMode').value, 10);
@@ -858,6 +1051,7 @@ function calc() {
     renderTimeChart(null);
     renderRange(NaN);
     renderPlanner(fromPctMaybe);
+    updateBatteryViz(fromPctMaybe, NaN);
     return;
   }
 
@@ -873,6 +1067,7 @@ function calc() {
     renderTimeChart(null);
     renderRange(toPct, NaN);
     renderPlanner(fromPct);
+    updateBatteryViz(fromPct, fromPct);
     return;
   }
   if (toPct > 100 || fromPct < 0) {
@@ -881,6 +1076,7 @@ function calc() {
     renderTimeChart(null);
     renderRange(NaN);
     renderPlanner(fromPct);
+    updateBatteryViz(fromPct, toPct);
     return;
   }
 
@@ -926,6 +1122,7 @@ function calc() {
     'Z ' + fromPct.toFixed(0) + ' % do ' + toPct.toFixed(0) + ' % za ' + formatTime(hours) + ' (' + (type === 'ac' ? 'AC' : 'DC') + ', ' + power + ' kW' + (currentTemp !== 'summer' ? ', ' + TEMP_PROFILES[currentTemp].label : '') + ').';
   renderRange(toPct, totalCost);
   renderPlanner(fromPct);
+  updateBatteryViz(fromPct, toPct);
 
   // Warnings
   if (type === 'ac' && power > AC_OBC_LIMIT) {
