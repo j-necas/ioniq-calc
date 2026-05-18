@@ -39,7 +39,7 @@
   .subtitle {
     color: var(--muted);
     font-size: 0.9rem;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
   .card {
     background: var(--card);
@@ -102,6 +102,29 @@
   .unit-toggle button.active {
     background: var(--accent);
     color: white;
+  }
+  .temp-pills {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .temp-pills button {
+    flex: 1;
+    min-width: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--text);
+    font-family: inherit;
+  }
+  .temp-pills button.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
   }
   .result {
     background: var(--accent-soft);
@@ -208,11 +231,43 @@
     font-size: 0.78rem;
     color: var(--muted);
   }
+  .range-cost {
+    font-size: 0.85rem;
+    color: var(--good);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .planner-result {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 8px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .planner-result strong {
+    color: var(--accent);
+    font-size: 1.1rem;
+  }
+  .apply-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .apply-btn:hover { background: #1d2080; }
   @media (max-width: 540px) {
     .row { flex-direction: column; gap: 8px; }
     .result-grid { grid-template-columns: 1fr; gap: 12px; }
     .range-grid { grid-template-columns: 1fr; }
     body { padding: 16px; }
+    .temp-pills button { font-size: 0.78rem; padding: 6px 8px; }
   }
 </style>
 </head>
@@ -221,6 +276,13 @@
 
 <h1>Nabíjecí kalkulačka</h1>
 <div class="subtitle">Hyundai Ioniq 5 Power 73 kWh · 800V · AC max 11 kW · DC peak 222 kW</div>
+
+<div class="temp-pills" id="tempPills">
+  <button data-temp="summer" class="active">☀️ Léto</button>
+  <button data-temp="mild">🍂 Jaro/podzim</button>
+  <button data-temp="winter">❄️ Zima</button>
+  <button data-temp="frost">🥶 Mráz</button>
+</div>
 
 <div class="card">
   <h2>Stav baterie</h2>
@@ -350,6 +412,25 @@
 </div>
 
 <div class="card">
+  <h2>Trasový plánovač</h2>
+  <div class="row">
+    <div>
+      <label>Vzdálenost (km)</label>
+      <input type="text" inputmode="decimal" id="tripDistance" value="210">
+    </div>
+    <div>
+      <label>Režim jízdy</label>
+      <select id="tripMode"></select>
+    </div>
+    <div>
+      <label>Rezerva (%)</label>
+      <input type="text" inputmode="decimal" id="tripReserve" value="10">
+    </div>
+  </div>
+  <div class="planner-result" id="plannerResult">Vyplň trasu…</div>
+</div>
+
+<div class="card">
   <h2>Křivka nabíjení</h2>
   <div class="chart-wrap">
     <svg id="powerChart" viewBox="0 0 600 280" preserveAspectRatio="xMidYMid meet" aria-label="Graf výkonu vs SOC"></svg>
@@ -368,13 +449,14 @@
 <div class="card">
   <h2>Dojezd po nabití na cíl</h2>
   <div class="range-grid" id="rangeGrid"></div>
-  <div class="chart-caption" style="margin-top:12px">Spotřeby z testu fdrive.cz (léto, 16–24 °C, 624 km test). V zimě počítej s +20–30 % spotřeby.</div>
+  <div class="chart-caption" style="margin-top:12px" id="rangeCaption">Spotřeby z testu fdrive.cz (léto, 16–24 °C, 624 km).</div>
 </div>
 
 <div class="footer-note">
   Baterie 73 kWh netto · DC křivka kalibrovaná podle <a href="https://fdrive.cz/clanky/hyundai-stejne-rychly-jako-porsche-vyzkouseli-jsme-nabijeni-ioniqu-5-7435" target="_blank">testu fdrive.cz</a> (peak 222 kW @ 45 % SOC, BMS pauza okolo 83 %).<br>
-  Spotřeba z <a href="https://fdrive.cz/clanky/test-jaka-je-spotreba-hyundai-ioniq-5-v-beznem-provozu-zaostreno-na-spotrebu-8037" target="_blank">testu fdrive.cz</a> (624 km, RWD 73 kWh, letní podmínky).<br>
-  <b>Idle fee:</b> volné minuty počítané od začátku session. Po překročení se účtuje Kč/min — typicky 1–2 Kč/min. „Doba po dobití" = jak dlouho zůstaneš zaparkovaný po skončení nabíjení.<br>
+  Spotřeba z <a href="https://fdrive.cz/clanky/test-jaka-je-spotreba-hyundai-ioniq-5-v-beznem-provozu-zaostreno-na-spotrebu-8037" target="_blank">testu fdrive.cz</a> (624 km, RWD 73 kWh, letní podmínky 16–24 °C).<br>
+  <b>Teplotní korekce:</b> upraví spotřebu (zima +25 %, mráz +40 %) a čas DC nabíjení (studená baterka má nižší peak).<br>
+  <b>Idle fee:</b> volné minuty počítané od začátku session. Doba po dobití = jak dlouho zůstaneš zaparkovaný po skončení nabíjení.<br>
   Ceny dle veřejných ceníků k 17. 5. 2026 · Před cestou ověř v aplikaci poskytovatele.
 </div>
 
@@ -386,16 +468,29 @@ const AC_OBC_LIMIT = 11;
 
 let fromUnit = 'pct';
 let toUnit = 'pct';
+let currentTemp = 'summer';
 
 // Driving modes from fdrive.cz spotřeba test (624 km, RWD 73 kWh, summer 16-24°C)
 const DRIVING_MODES = [
-  { label: 'Mimo město', detail: '90 km/h, okresky', consumption: 13.55 },
-  { label: 'Město', detail: 'běžný provoz', consumption: 15.68 },
-  { label: 'Smíšeně', detail: 'kombinovaný okruh', consumption: 16.3 },
-  { label: 'Rychlostní', detail: '110 km/h', consumption: 19.35 },
-  { label: 'Dálnice', detail: '130 km/h, plný plyn', consumption: 24.5 },
-  { label: 'Reálný průměr', detail: '624 km test', consumption: 20.23 }
+  { key: 'outside', label: 'Mimo město', detail: '90 km/h, okresky', consumption: 13.55 },
+  { key: 'city',    label: 'Město',       detail: 'běžný provoz',     consumption: 15.68 },
+  { key: 'mixed',   label: 'Smíšeně',     detail: 'kombinovaný okruh', consumption: 16.3 },
+  { key: 'fast',    label: 'Rychlostní',  detail: '110 km/h',         consumption: 19.35 },
+  { key: 'highway', label: 'Dálnice',     detail: '130 km/h',         consumption: 24.5 },
+  { key: 'real',    label: 'Reálný průměr', detail: '624 km test',    consumption: 20.23 }
 ];
+
+// Temperature adjustment: consumption multiplier + DC charging time multiplier
+const TEMP_PROFILES = {
+  summer: { label: 'Léto (10–25 °C)', consMult: 1.00, chargeMult: 1.00 },
+  mild:   { label: 'Jaro/podzim (0–10 °C)', consMult: 1.10, chargeMult: 1.05 },
+  winter: { label: 'Zima (−5 až 0 °C)', consMult: 1.25, chargeMult: 1.20 },
+  frost:  { label: 'Mráz (< −5 °C, studená baterka)', consMult: 1.40, chargeMult: 1.45 }
+};
+
+function adjustedConsumption(baseConsumption) {
+  return baseConsumption * TEMP_PROFILES[currentTemp].consMult;
+}
 
 function parseNum(v) {
   if (v == null) return NaN;
@@ -449,39 +544,44 @@ function onNetworkChange() {
   calc();
 }
 
+function setTemp(temp) {
+  currentTemp = temp;
+  document.querySelectorAll('#tempPills button').forEach(b => {
+    b.classList.toggle('active', b.dataset.temp === temp);
+  });
+  calc();
+}
+
 // Ioniq 5 73 kWh DC charging curve, calibrated against fdrive.cz test
-// (4→50% in 10 min, 4→80% in 20 min, 4→90% in 28 min, 4→99% in 42 min on 350 kW HPC)
-// Returns max power (kW) car can accept at given SOC, assuming station can deliver it.
 function carMaxPowerAtSoc(soc) {
-  if (soc < 4)  return 140;  // cold start ramp
+  if (soc < 4)  return 140;
   if (soc < 10) return 195;
-  if (soc < 45) return 215;  // peak zone, max 222 kW @ 45%
-  if (soc < 50) return 185;  // first taper step
+  if (soc < 45) return 215;
+  if (soc < 50) return 185;
   if (soc < 65) return 165;
   if (soc < 70) return 135;
   if (soc < 80) return 115;
   if (soc < 83) return 95;
-  if (soc < 86) return 25;   // BMS balancing pause (~3 min at very low kW)
+  if (soc < 86) return 25;
   if (soc < 90) return 50;
   if (soc < 95) return 38;
   return 25;
 }
 
-// Integrate charging time across SOC range
-// Returns { totalHours, samples: [{soc, power, cumulativeHours, cumulativeKwh}] }
 function dcChargingProfile(fromPct, toPct, chargerKw) {
   const samples = [];
   let totalHours = 0;
   let cumulativeKwh = 0;
   const step = 0.5;
   let soc = fromPct;
-  samples.push({ soc, power: Math.min(chargerKw, carMaxPowerAtSoc(soc)), cumulativeHours: 0, cumulativeKwh: 0 });
+  const tempMult = TEMP_PROFILES[currentTemp].chargeMult;
+  samples.push({ soc, power: Math.min(chargerKw, carMaxPowerAtSoc(soc)) / tempMult, cumulativeHours: 0, cumulativeKwh: 0 });
   while (soc < toPct) {
     const segmentEnd = Math.min(soc + step, toPct);
     const segmentPct = segmentEnd - soc;
     const segmentKwh = (segmentPct / 100) * BATTERY_KWH;
     const carMax = carMaxPowerAtSoc(soc + segmentPct / 2);
-    const actualPower = Math.min(chargerKw, carMax);
+    const actualPower = Math.min(chargerKw, carMax) / tempMult;
     const segmentHours = segmentKwh / actualPower;
     totalHours += segmentHours;
     cumulativeKwh += segmentKwh;
@@ -492,6 +592,7 @@ function dcChargingProfile(fromPct, toPct, chargerKw) {
 }
 
 function acChargingProfile(fromPct, toPct, chargerKw) {
+  // AC not significantly affected by battery temperature (limited by OBC, not BMS thermal)
   const actualPower = Math.min(chargerKw, AC_OBC_LIMIT);
   const energyKwh = ((toPct - fromPct) / 100) * BATTERY_KWH;
   const totalHours = energyKwh / actualPower;
@@ -530,28 +631,25 @@ function renderPowerChart(fromPct, toPct, chargerKw, type) {
   const P = { top: 20, right: 20, bottom: 40, left: 50 };
   const innerW = W - P.left - P.right;
   const innerH = H - P.top - P.bottom;
-  const maxPower = 240; // fixed Y axis 0-240 kW
+  const tempMult = TEMP_PROFILES[currentTemp].chargeMult;
+  const maxPower = 240;
 
   const xScale = soc => P.left + (soc / 100) * innerW;
   const yScale = pow => P.top + innerH - (pow / maxPower) * innerH;
 
-  // Grid + Y labels
   for (let p = 0; p <= maxPower; p += 50) {
     const y = yScale(p);
     svg.appendChild(svgNS('line', { x1: P.left, y1: y, x2: P.left + innerW, y2: y, stroke: 'var(--chart-grid)', 'stroke-width': 1 }));
     svg.appendChild(svgNS('text', { x: P.left - 8, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, p));
   }
-  // X labels
   for (let s = 0; s <= 100; s += 20) {
     const x = xScale(s);
     svg.appendChild(svgNS('line', { x1: x, y1: P.top + innerH, x2: x, y2: P.top + innerH + 4, stroke: 'var(--muted)', 'stroke-width': 1 }));
     svg.appendChild(svgNS('text', { x, y: P.top + innerH + 18, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--muted)' }, s + '%'));
   }
-  // Axis labels
   svg.appendChild(svgNS('text', { x: P.left, y: P.top - 6, 'font-size': 11, fill: 'var(--muted)' }, 'kW'));
   svg.appendChild(svgNS('text', { x: W - P.right, y: H - 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, 'SOC'));
 
-  // Highlight user range
   if (!isNaN(fromPct) && !isNaN(toPct) && toPct > fromPct) {
     svg.appendChild(svgNS('rect', {
       x: xScale(fromPct), y: P.top,
@@ -560,26 +658,22 @@ function renderPowerChart(fromPct, toPct, chargerKw, type) {
     }));
   }
 
-  // Full power curve (capped by charger if DC and charger < peak)
   const cap = type === 'ac' ? Math.min(chargerKw, AC_OBC_LIMIT) : (isNaN(chargerKw) ? 240 : chargerKw);
   let path = '';
   for (let s = 0; s <= 100; s += 0.5) {
     const carMax = type === 'ac' ? cap : carMaxPowerAtSoc(s);
-    const power = Math.min(cap, carMax);
+    const power = Math.min(cap, carMax) / (type === 'dc' ? tempMult : 1);
     const x = xScale(s);
     const y = yScale(power);
     path += (s === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
   }
-  // Area
   const areaPath = path + 'L' + xScale(100) + ' ' + yScale(0) + ' L' + xScale(0) + ' ' + yScale(0) + ' Z';
   svg.appendChild(svgNS('path', { d: areaPath, fill: 'var(--chart-area)' }));
-  // Line
   svg.appendChild(svgNS('path', { d: path, stroke: 'var(--chart-line)', 'stroke-width': 2, fill: 'none' }));
 
-  // Markers for from/to
   if (!isNaN(fromPct) && !isNaN(toPct) && toPct > fromPct) {
-    const fromPower = type === 'ac' ? cap : Math.min(cap, carMaxPowerAtSoc(fromPct));
-    const toPower = type === 'ac' ? cap : Math.min(cap, carMaxPowerAtSoc(toPct));
+    const fromPower = (type === 'ac' ? cap : Math.min(cap, carMaxPowerAtSoc(fromPct))) / (type === 'dc' ? tempMult : 1);
+    const toPower = (type === 'ac' ? cap : Math.min(cap, carMaxPowerAtSoc(toPct))) / (type === 'dc' ? tempMult : 1);
     svg.appendChild(svgNS('circle', { cx: xScale(fromPct), cy: yScale(fromPower), r: 5, fill: 'var(--chart-highlight)', stroke: 'white', 'stroke-width': 2 }));
     svg.appendChild(svgNS('circle', { cx: xScale(toPct), cy: yScale(toPower), r: 5, fill: 'var(--chart-highlight)', stroke: 'white', 'stroke-width': 2 }));
     svg.appendChild(svgNS('text', { x: xScale(fromPct), y: yScale(fromPower) - 10, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--accent)', 'font-weight': 600 }, fromPower.toFixed(0) + ' kW'));
@@ -604,21 +698,18 @@ function renderTimeChart(profile, fromPct, toPct) {
   const xScale = min => P.left + (totalMin === 0 ? 0 : (min / totalMin) * innerW);
   const yScale = soc => P.top + innerH - (soc / 100) * innerH;
 
-  // Y grid + labels (SOC)
   for (let s = 0; s <= 100; s += 20) {
     const y = yScale(s);
     svg.appendChild(svgNS('line', { x1: P.left, y1: y, x2: P.left + innerW, y2: y, stroke: 'var(--chart-grid)', 'stroke-width': 1 }));
     svg.appendChild(svgNS('text', { x: P.left - 8, y: y + 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, s + '%'));
   }
 
-  // X labels (minutes) - pick nice intervals
   const niceStep = totalMin <= 10 ? 2 : totalMin <= 30 ? 5 : totalMin <= 90 ? 15 : totalMin <= 180 ? 30 : 60;
   for (let m = 0; m <= totalMin; m += niceStep) {
     const x = xScale(m);
     svg.appendChild(svgNS('line', { x1: x, y1: P.top + innerH, x2: x, y2: P.top + innerH + 4, stroke: 'var(--muted)', 'stroke-width': 1 }));
     svg.appendChild(svgNS('text', { x, y: P.top + innerH + 18, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--muted)' }, m + 'm'));
   }
-  // Final point
   if (totalMin % niceStep !== 0) {
     const x = xScale(totalMin);
     svg.appendChild(svgNS('text', { x, y: P.top + innerH + 18, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--chart-highlight)', 'font-weight': 600 }, totalMin.toFixed(0) + 'm'));
@@ -627,7 +718,6 @@ function renderTimeChart(profile, fromPct, toPct) {
   svg.appendChild(svgNS('text', { x: P.left, y: P.top - 6, 'font-size': 11, fill: 'var(--muted)' }, 'SOC'));
   svg.appendChild(svgNS('text', { x: W - P.right, y: H - 4, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--muted)' }, 'min'));
 
-  // SOC over time curve
   let path = '';
   profile.samples.forEach((s, i) => {
     const x = xScale(s.cumulativeHours * 60);
@@ -638,32 +728,84 @@ function renderTimeChart(profile, fromPct, toPct) {
   svg.appendChild(svgNS('path', { d: areaPath, fill: 'var(--chart-area)' }));
   svg.appendChild(svgNS('path', { d: path, stroke: 'var(--chart-line)', 'stroke-width': 2, fill: 'none' }));
 
-  // Start and end markers
   svg.appendChild(svgNS('circle', { cx: xScale(0), cy: yScale(fromPct), r: 5, fill: 'var(--chart-highlight)', stroke: 'white', 'stroke-width': 2 }));
   svg.appendChild(svgNS('circle', { cx: xScale(totalMin), cy: yScale(toPct), r: 5, fill: 'var(--chart-highlight)', stroke: 'white', 'stroke-width': 2 }));
   svg.appendChild(svgNS('text', { x: xScale(0) + 8, y: yScale(fromPct) + 4, 'font-size': 11, fill: 'var(--accent)', 'font-weight': 600 }, fromPct.toFixed(0) + '%'));
   svg.appendChild(svgNS('text', { x: xScale(totalMin) - 8, y: yScale(toPct) - 8, 'text-anchor': 'end', 'font-size': 11, fill: 'var(--accent)', 'font-weight': 600 }, toPct.toFixed(0) + '%'));
 }
 
-function renderRange(toPct) {
+function renderRange(toPct, totalCost) {
   const grid = document.getElementById('rangeGrid');
+  const caption = document.getElementById('rangeCaption');
   grid.innerHTML = '';
   if (isNaN(toPct) || toPct <= 0 || toPct > 100) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:0.85rem">Zadej platný cíl 0–100 %.</div>';
     return;
   }
   const usableKwh = (toPct / 100) * BATTERY_KWH;
+  const tempProfile = TEMP_PROFILES[currentTemp];
   DRIVING_MODES.forEach(mode => {
-    const km = (usableKwh / mode.consumption) * 100;
+    const adjusted = adjustedConsumption(mode.consumption);
+    const km = (usableKwh / adjusted) * 100;
+    const kmReserve = km * 0.9;
+    const costPerKm = (!isNaN(totalCost) && km > 0) ? (totalCost / km) : NaN;
     const item = document.createElement('div');
     item.className = 'range-item';
     item.innerHTML =
       '<div class="range-mode">' + mode.label + '</div>' +
-      '<div class="range-mode-detail">' + mode.detail + ' · ' + mode.consumption.toFixed(1).replace('.', ',') + ' kWh/100 km</div>' +
+      '<div class="range-mode-detail">' + mode.detail + ' · ' + adjusted.toFixed(1).replace('.', ',') + ' kWh/100 km</div>' +
       '<div class="range-km">' + Math.round(km) + ' km</div>' +
-      '<div class="range-sub">do 0 % · s 10% rezervou ≈ ' + Math.round(km * 0.9) + ' km</div>';
+      '<div class="range-sub">do 0 % · s 10 % rezervou ≈ ' + Math.round(kmReserve) + ' km</div>' +
+      (isNaN(costPerKm) ? '' : '<div class="range-cost">' + costPerKm.toFixed(2).replace('.', ',') + ' Kč/km</div>');
     grid.appendChild(item);
   });
+  caption.textContent = 'Spotřeby z testu fdrive.cz upravené pro „' + tempProfile.label + '" (× ' + tempProfile.consMult.toFixed(2).replace('.', ',') + '). Cena/km z aktuální session.';
+}
+
+function renderPlanner(fromPct) {
+  const dist = parseNum(document.getElementById('tripDistance').value);
+  const modeIdx = parseInt(document.getElementById('tripMode').value, 10);
+  const reservePct = parseNum(document.getElementById('tripReserve').value);
+  const out = document.getElementById('plannerResult');
+
+  if (isNaN(dist) || dist <= 0 || isNaN(modeIdx) || isNaN(reservePct) || reservePct < 0) {
+    out.innerHTML = 'Zadej platnou vzdálenost, režim a rezervu.';
+    return;
+  }
+  const mode = DRIVING_MODES[modeIdx];
+  const adjusted = adjustedConsumption(mode.consumption);
+  const tripKwh = (dist * adjusted) / 100;
+  const totalKwh = tripKwh * (1 + reservePct / 100);
+  const requiredPct = (totalKwh / BATTERY_KWH) * 100;
+  const recommendedPct = Math.min(100, Math.ceil(requiredPct / 5) * 5);
+
+  if (requiredPct > 100) {
+    out.innerHTML = '⚠️ <strong>' + dist + ' km</strong> v režimu „' + mode.label + '" (' + adjusted.toFixed(1).replace('.', ',') + ' kWh/100km) potřebuje ' + Math.round(totalKwh) + ' kWh — víc, než baterka má (73 kWh). Bez nabíjení po cestě nedojedeš.';
+    return;
+  }
+
+  let extra = '';
+  if (!isNaN(fromPct) && fromPct < requiredPct) {
+    const energyToCharge = ((recommendedPct - fromPct) / 100) * BATTERY_KWH;
+    extra = '<br>Aktuálně máš <strong>' + fromPct.toFixed(0) + ' %</strong> → musíš dobít <strong>' + energyToCharge.toFixed(1) + ' kWh</strong>.';
+  } else if (!isNaN(fromPct)) {
+    extra = '<br>✅ Aktuálně máš <strong>' + fromPct.toFixed(0) + ' %</strong> — stačí ti to bez dobíjení.';
+  }
+
+  out.innerHTML =
+    'Pro <strong>' + dist + ' km</strong> v režimu „' + mode.label + '" (' + adjusted.toFixed(1).replace('.', ',') + ' kWh/100km) potřebuješ ' +
+    '<strong>' + tripKwh.toFixed(1) + ' kWh</strong> + ' + reservePct + ' % rezerva = ' +
+    '<strong>' + totalKwh.toFixed(1) + ' kWh</strong> = minimálně <strong>' + requiredPct.toFixed(0) + ' % SOC</strong>.' +
+    '<br>Doporučený cíl: <strong>' + recommendedPct + ' %</strong> (zaokrouhleno na 5 %).' +
+    extra +
+    '<br><button class="apply-btn" onclick="applyTripTarget(' + recommendedPct + ')">Nastavit cíl na ' + recommendedPct + ' %</button>';
+}
+
+function applyTripTarget(pct) {
+  if (toUnit !== 'pct') setToUnit('pct');
+  document.getElementById('toValue').value = pct;
+  calc();
+  document.getElementById('toValue').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function calc() {
@@ -678,6 +820,8 @@ function calc() {
   warningBox.innerHTML = '';
   infoBox.innerHTML = '';
 
+  const fromPctMaybe = isNaN(fromRaw) ? NaN : (fromUnit === 'pct' ? fromRaw : (fromRaw / BATTERY_KWH) * 100);
+
   if (isNaN(fromRaw) || isNaN(toRaw) || isNaN(power) || isNaN(price)) {
     document.getElementById('energy').textContent = '—';
     document.getElementById('time').textContent = '—';
@@ -688,6 +832,7 @@ function calc() {
     renderPowerChart(NaN, NaN, power, type);
     renderTimeChart(null);
     renderRange(NaN);
+    renderPlanner(fromPctMaybe);
     return;
   }
 
@@ -701,7 +846,8 @@ function calc() {
     document.getElementById('cost').textContent = '—';
     renderPowerChart(NaN, NaN, power, type);
     renderTimeChart(null);
-    renderRange(toPct);
+    renderRange(toPct, NaN);
+    renderPlanner(fromPct);
     return;
   }
   if (toPct > 100 || fromPct < 0) {
@@ -709,6 +855,7 @@ function calc() {
     renderPowerChart(NaN, NaN, power, type);
     renderTimeChart(null);
     renderRange(NaN);
+    renderPlanner(fromPct);
     return;
   }
 
@@ -721,7 +868,7 @@ function calc() {
   const avgPower = energyKwh / hours;
   const chargingMin = hours * 60;
 
-  // Idle fee calculation
+  // Idle fee
   const graceMin = parseNum(document.getElementById('idleGrace').value);
   const feePerMin = parseNum(document.getElementById('idleFee').value);
   const dwellMin = parseNum(document.getElementById('dwellAfter').value);
@@ -738,7 +885,7 @@ function calc() {
   document.getElementById('energy').textContent = energyKwh.toFixed(1) + ' kWh';
   document.getElementById('energySub').textContent = fromPct.toFixed(0) + '% → ' + toPct.toFixed(0) + '%';
   document.getElementById('time').textContent = formatTime(hours);
-  document.getElementById('timeSub').textContent = '⌀ ' + avgPower.toFixed(1) + ' kW';
+  document.getElementById('timeSub').textContent = '⌀ ' + avgPower.toFixed(1) + ' kW' + (currentTemp !== 'summer' ? ' · ' + TEMP_PROFILES[currentTemp].label.split(' ')[0] : '');
   document.getElementById('cost').textContent = Math.round(totalCost) + ' Kč';
   if (idleFee > 0) {
     document.getElementById('costSub').textContent = 'energie ' + Math.round(energyCost) + ' + idle ' + Math.round(idleFee) + ' Kč (' + idleMinChargeable.toFixed(0) + ' min × ' + feePerMin.toFixed(2).replace('.', ',') + ')';
@@ -748,14 +895,14 @@ function calc() {
     document.getElementById('costSub').textContent = price.toFixed(2).replace('.', ',') + ' Kč/kWh · idle 0';
   }
 
-  // Charts + range
   renderPowerChart(fromPct, toPct, power, type);
   renderTimeChart(profile, fromPct, toPct);
   document.getElementById('timeChartCaption').textContent =
-    'Z ' + fromPct.toFixed(0) + ' % do ' + toPct.toFixed(0) + ' % za ' + formatTime(hours) + ' (' + (type === 'ac' ? 'AC' : 'DC') + ', ' + power + ' kW).';
-  renderRange(toPct);
+    'Z ' + fromPct.toFixed(0) + ' % do ' + toPct.toFixed(0) + ' % za ' + formatTime(hours) + ' (' + (type === 'ac' ? 'AC' : 'DC') + ', ' + power + ' kW' + (currentTemp !== 'summer' ? ', ' + TEMP_PROFILES[currentTemp].label : '') + ').';
+  renderRange(toPct, totalCost);
+  renderPlanner(fromPct);
 
-  // Informational warnings
+  // Warnings
   if (type === 'ac' && power > AC_OBC_LIMIT) {
     infoBox.innerHTML = '<div class="info">⚠️ Ioniq 5 má palubní nabíječku limitovanou na 11 kW. I když nabíječka umí ' + power + ' kW, vůz si vezme jen 11 kW.</div>';
   }
@@ -768,22 +915,36 @@ function calc() {
   if (type === 'dc' && power < 50) {
     warningBox.innerHTML = '<div class="warning">DC s výkonem &lt; 50 kW je neobvyklé — zkontroluj typ stojanu.</div>';
   }
-  // Idle warnings
   if (!isNaN(graceMin) && !isNaN(feePerMin) && feePerMin > 0) {
     const bufferAfterCharging = graceMin - chargingMin;
     if (bufferAfterCharging < 0) {
       warningBox.innerHTML += '<div class="warning">⏱️ Samotné nabíjení (' + Math.round(chargingMin) + ' min) překračuje volné minuty (' + graceMin + '). Idle se účtuje už během nabíjení.</div>';
     } else if (bufferAfterCharging < 15 && type === 'dc') {
-      infoBox.innerHTML += '<div class="info">⏱️ Po dokončení nabíjení máš jen ~' + Math.round(bufferAfterCharging) + ' min než začne idle ' + feePerMin + ' Kč/min. Odjeď hned po dosažení cíle.</div>';
+      infoBox.innerHTML += '<div class="info">⏱️ Po dokončení máš jen ~' + Math.round(bufferAfterCharging) + ' min než začne idle ' + feePerMin + ' Kč/min. Odjeď hned.</div>';
     }
   }
   if (isNaN(graceMin) || isNaN(feePerMin)) {
     infoBox.innerHTML += '<div class="info">ℹ️ Idle poplatek u této sítě není zveřejněn — ověř v aplikaci poskytovatele.</div>';
   }
+  if (currentTemp === 'frost' && type === 'dc') {
+    infoBox.innerHTML += '<div class="info">🥶 Studená baterka = nižší peak výkon. Pre-conditioning (nahřátí baterky před nabíječkou v navigaci) výrazně zkrátí čas — Ioniq 5 to po SW aktualizaci umí.</div>';
+  }
+}
+
+function initTripMode() {
+  const sel = document.getElementById('tripMode');
+  DRIVING_MODES.forEach((mode, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = mode.label + ' · ' + mode.consumption.toFixed(1).replace('.', ',') + ' kWh/100km';
+    if (mode.key === 'highway') opt.selected = true;
+    sel.appendChild(opt);
+  });
 }
 
 function init() {
-  ['fromValue','toValue','power','price','idleGrace','idleFee','dwellAfter'].forEach(id => {
+  initTripMode();
+  ['fromValue','toValue','power','price','idleGrace','idleFee','dwellAfter','tripDistance','tripReserve'].forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('input', calc);
     el.addEventListener('change', calc);
@@ -791,6 +952,10 @@ function init() {
   });
   document.getElementById('connectorType').addEventListener('change', calc);
   document.getElementById('network').addEventListener('change', onNetworkChange);
+  document.getElementById('tripMode').addEventListener('change', calc);
+  document.querySelectorAll('#tempPills button').forEach(b => {
+    b.addEventListener('click', () => setTemp(b.dataset.temp));
+  });
   calc();
 }
 
